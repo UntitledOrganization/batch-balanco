@@ -1,4 +1,4 @@
-#include "OpenGLShader.hpp"
+#include "../include/OpenGLShader.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -42,7 +42,6 @@ bool OpenGLShader::SetMat4( const char* name, const void* data)
 	GLint uniformLocation = GetUniformLocation(name);
 	if(uniformLocation == -1) return false;
 
-	Bind();
 	glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, (float *)data);
 	return true;
 }
@@ -51,7 +50,6 @@ bool OpenGLShader::SetVec4( const char* name, const Vec4& data)
 {
 	GLint uniformLocation = GetUniformLocation(name);
 	if(uniformLocation == -1) return false;
-	Bind();
 	glUniform4fv(uniformLocation, 1, (float *)(&data));
 	return true;
 }
@@ -59,7 +57,6 @@ bool OpenGLShader::SetVec3( const char* name, const Vec3& data)
 {
 	GLint uniformLocation = GetUniformLocation(name);
 	if(uniformLocation == -1) return false;
-	Bind();
 	glUniform3fv(uniformLocation, 1, (float *)(&data));
 	return true;
 }
@@ -68,7 +65,6 @@ bool OpenGLShader::SetVec2( const char* name, const Vec2& data)
 {
 	GLint uniformLocation = GetUniformLocation(name);
 	if(uniformLocation == -1) return false;
-	Bind();
 	glUniform2fv(uniformLocation, 1, (float *)(&data));
 	return true;
 }
@@ -77,7 +73,6 @@ bool OpenGLShader::SetInt(const char* name, const int& data)
 {
 	GLint uniformLocation = GetUniformLocation(name);
 	if(uniformLocation == -1) return false;
-	Bind();
 	glUniform1i(uniformLocation, data);
 	return true;
 }
@@ -86,7 +81,6 @@ bool OpenGLShader::SetFloat(const char* name, const float& data)
 {
 	GLint uniformLocation = GetUniformLocation(name);
 	if(uniformLocation == -1) return false;
-	Bind();
 	glUniform1f(uniformLocation, data);
 	return true;
 }
@@ -127,19 +121,36 @@ bool OpenGLShader::CompileShaders()
 		return false;
 	}
 
-
 	m_shaderProgram = glCreateProgram();
 	if(m_shaderProgram == 0) return false;
 	
 	glAttachShader(m_shaderProgram, vertexShader);
 	glAttachShader(m_shaderProgram, fragmentShader);
-	glLinkProgram(m_shaderProgram);
+
+	bool linkSuccessfull = LinkProgram(m_shaderProgram);
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
-	return true;
+	return linkSuccessfull;
 }
+
+bool OpenGLShader::LinkProgram(GLuint shaderProgram)
+{
+	glLinkProgram(shaderProgram);
+
+	GLint linkSuccess;
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &linkSuccess);
+	if(linkSuccess != GL_TRUE)
+	{
+		char infoLog[512];
+		glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
+		std::cout << infoLog << '\n';
+		return false;
+	}
+
+	return true;
+};
 
 
 GLuint OpenGLShader::CompileShader(const std::string& shaderSource, ShaderType type) const
