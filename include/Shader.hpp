@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "types.hpp"
+#include "Types.hpp"
 
 struct ShaderSources {
 	std::string vertexShader;
