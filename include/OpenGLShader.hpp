@@ -14,8 +14,8 @@ public:
 	virtual bool Init()    override;
 	virtual void Cleanup() override;
 
-	inline virtual void Bind()   override { glUseProgram(m_shaderProgram);	};
-	inline virtual void Unbind() override { glUseProgram(0); 				};
+	inline virtual void Bind()   override { glUseProgram(m_shaderProgram); };
+	inline virtual void Unbind() override { glUseProgram(0);               };
 
 	virtual bool SetMat4( const char* name, const void* data) override;
 	virtual bool SetVec4( const char* name, const Vec4& data) override;
