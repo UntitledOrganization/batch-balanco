@@ -11,8 +11,9 @@ namespace sbb
     {
         const ResultType type;
         const std::string message;
-        bool operator!() const {
-            return (type != SBB_RESULT_OK);
+        bool operator!() const 
+        {
+            return (type != SBB_OK);
         }
     };
 
