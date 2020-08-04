@@ -38,8 +38,8 @@ protected:
 		FRAGMENT_SHADER
 	};
 
-	std::string m_vertexShaderFilePath;
-	std::string m_fragmentShaderFilePath;
+	std::string mvertexShaderFilePath;
+	std::string mfragmentShaderFilePath;
 
-	ShaderSources m_shaderSource;
+	ShaderSources mshaderSource;
 };

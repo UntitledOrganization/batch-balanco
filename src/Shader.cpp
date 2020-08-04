@@ -3,11 +3,11 @@
 #include <iostream>
 
 Shader::Shader(const std::string& vertexShaderFilePath, const std::string& fragmentShaderFilePath)
-:	m_vertexShaderFilePath(vertexShaderFilePath),
-	m_fragmentShaderFilePath(fragmentShaderFilePath)
+:	mvertexShaderFilePath(vertexShaderFilePath),
+	mfragmentShaderFilePath(fragmentShaderFilePath)
 { /* */ }
 
 Shader::Shader(const ShaderSources& source)
-:	m_vertexShaderFilePath(""),
-	m_fragmentShaderFilePath("")
+:	mvertexShaderFilePath(""),
+	mfragmentShaderFilePath("")
 { /* */ }

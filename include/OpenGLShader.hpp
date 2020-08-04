@@ -14,7 +14,7 @@ public:
 	virtual bool Init()    override;
 	virtual void Cleanup() override;
 
-	inline virtual void Bind()   override { glUseProgram(m_shaderProgram); };
+	inline virtual void Bind()   override { glUseProgram(mshaderProgram); };
 	inline virtual void Unbind() override { glUseProgram(0);               };
 
 	virtual bool SetMat4( const char* name, const void* data) override;
@@ -33,10 +33,10 @@ private:
 		SHADER_SINGLE_SOURCE
 	};
 
-	ShaderSourceType m_compilationSource;
-	ShaderSources m_sources;
+	ShaderSourceType mcompilationSource;
+	ShaderSources msources;
 
-	GLuint m_shaderProgram;	
+	GLuint mshaderProgram;	
 
 	// Returns shader if compiled successfully,
 	// 0 otherwise.

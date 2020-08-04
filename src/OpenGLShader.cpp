@@ -8,25 +8,25 @@ OpenGLShader::OpenGLShader(
 	const std::string& vertexShaderFilePath, 
 	const std::string& fragmentShaderFilePath)
 	:	Shader(vertexShaderFilePath, fragmentShaderFilePath),
-		m_compilationSource(ShaderSourceType::SHADER_FILES),
-		m_shaderProgram(0)
+		mcompilationSource(ShaderSourceType::SHADER_FILES),
+		mshaderProgram(0)
 { }
 
 OpenGLShader::OpenGLShader(const ShaderSources& source)
 :	Shader(source),
-	m_compilationSource(ShaderSourceType::SHADER_SOURCES),
-	m_shaderProgram(0)
+	mcompilationSource(ShaderSourceType::SHADER_SOURCES),
+	mshaderProgram(0)
 {}
 
 
 bool OpenGLShader::Init()
 {
-	if(m_compilationSource == ShaderSourceType::SHADER_FILES) 
+	if(mcompilationSource == ShaderSourceType::SHADER_FILES) 
 	{
-		m_sources = ExtractShaderSources();
+		msources = ExtractShaderSources();
 
-		if(m_sources.vertexShader   == "") return false;
-		if(m_sources.fragmentShader == "") return false;
+		if(msources.vertexShader   == "") return false;
+		if(msources.fragmentShader == "") return false;
 	}
 
 	return CompileShaders();
@@ -34,7 +34,7 @@ bool OpenGLShader::Init()
 
 void OpenGLShader::Cleanup()
 {
-	glDeleteProgram(m_shaderProgram);
+	glDeleteProgram(mshaderProgram);
 }
 
 bool OpenGLShader::SetMat4( const char* name, const void* data)
@@ -90,8 +90,8 @@ ShaderSources OpenGLShader::ExtractShaderSources() const
 	std::fstream vsFileStream; 
 	std::fstream fsFileStream; 
 
-	vsFileStream.open(m_vertexShaderFilePath,   std::fstream::in);
-	fsFileStream.open(m_fragmentShaderFilePath, std::fstream::in);
+	vsFileStream.open(mvertexShaderFilePath,   std::fstream::in);
+	fsFileStream.open(mfragmentShaderFilePath, std::fstream::in);
 
 	if(!vsFileStream) return { "", "" };
 	if(!fsFileStream) return { "", "" };
@@ -111,23 +111,23 @@ ShaderSources OpenGLShader::ExtractShaderSources() const
 
 bool OpenGLShader::CompileShaders() 
 {
-	GLuint vertexShader   = CompileShader(m_sources.vertexShader,   ShaderType::VERTEX_SHADER  );
+	GLuint vertexShader   = CompileShader(msources.vertexShader,   ShaderType::VERTEX_SHADER  );
 	if(vertexShader == 0) return false;
 
-	GLuint fragmentShader = CompileShader(m_sources.fragmentShader, ShaderType::FRAGMENT_SHADER);
+	GLuint fragmentShader = CompileShader(msources.fragmentShader, ShaderType::FRAGMENT_SHADER);
 	if(fragmentShader == 0)
 	{
 		glDeleteShader(vertexShader);
 		return false;
 	}
 
-	m_shaderProgram = glCreateProgram();
-	if(m_shaderProgram == 0) return false;
+	mshaderProgram = glCreateProgram();
+	if(mshaderProgram == 0) return false;
 	
-	glAttachShader(m_shaderProgram, vertexShader);
-	glAttachShader(m_shaderProgram, fragmentShader);
+	glAttachShader(mshaderProgram, vertexShader);
+	glAttachShader(mshaderProgram, fragmentShader);
 
-	bool linkSuccessfull = LinkProgram(m_shaderProgram);
+	bool linkSuccessfull = LinkProgram(mshaderProgram);
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
@@ -196,5 +196,5 @@ GLenum OpenGLShader::MapShaderType(ShaderType type) const
 
 GLint OpenGLShader::GetUniformLocation(const char* name) const
 {
-	return glGetUniformLocation(m_shaderProgram, name);
+	return glGetUniformLocation(mshaderProgram, name);
 }
