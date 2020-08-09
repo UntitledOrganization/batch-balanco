@@ -1,3 +1,4 @@
+/*
 #include "../include/Texture.hpp"
 #include <stb_image.h>
 #include <GL/glew.h>
@@ -92,3 +93,4 @@ Texture::~Texture()
         glDeleteTextures(1, &mId);
     }
 }
+*/

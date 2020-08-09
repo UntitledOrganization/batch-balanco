@@ -18,15 +18,15 @@ namespace sbb
 			virtual void Cleanup() override;
 
 			inline virtual void Bind()   override { glUseProgram(mshaderProgram); };
-			inline virtual void Unbind() override { glUseProgram(0);               };
+			inline virtual void Unbind() override { glUseProgram(0);              };
 
-			virtual bool SetMat4( const char* name, const void* data) override;
-			virtual bool SetVec4( const char* name, const Vec4& data) override;
-			virtual bool SetVec3( const char* name, const Vec3& data) override;
-			virtual bool SetVec2( const char* name, const Vec2& data) override;
+			virtual Status SetMat4( const char* name, const void* data)  override;
+			virtual Status SetVec4( const char* name, const Vec4& data)  override;
+			virtual Status SetVec3( const char* name, const Vec3& data)  override;
+			virtual Status SetVec2( const char* name, const Vec2& data)  override;
 
-			virtual bool SetInt(const char* name, const int& data)     override;
-			virtual bool SetFloat(const char* name, const float& data) override;
+			virtual Status SetInt(const char* name, const int& data)     override;
+			virtual Status SetFloat(const char* name, const float& data) override;
 
 		private:
 			enum class ShaderSourceType
@@ -37,7 +37,7 @@ namespace sbb
 			};
 
 			ShaderSourceType mcompilationSource;
-			ShaderSources msources;
+			ShaderSources mSources;
 
 			GLuint mshaderProgram;	
 
@@ -46,10 +46,9 @@ namespace sbb
 			GLuint CompileShader(const std::string& shaderSource, ShaderType type) const;
 
 			Status CompileShaders();
-			bool LinkProgram();
-			bool LinkProgram(GLuint shaderProgram);
+			Status LinkProgram(GLuint shaderProgram);
 			bool HasShaderCompiledProperly(GLuint shader) const;
-			ShaderSources ExtractShaderSources() const;
+			Result<ShaderSources> ExtractShaderSources() const;
 
 			GLenum MapShaderType(ShaderType type) const;
 			GLint GetUniformLocation(const char* name) const;

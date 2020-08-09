@@ -4,7 +4,6 @@
 #include <iostream>
 #include <sstream>
 
-
 namespace sbb
 {
 
@@ -27,10 +26,13 @@ namespace sbb
 	{
 		if(mcompilationSource == ShaderSourceType::SHADER_FILES) 
 		{
-			msources = ExtractShaderSources();
+			auto [sources, status] = ExtractShaderSources();
 
-			if(msources.vertexShader   == "") return { SBB_RESULT_FILE_ERROR };
-			if(msources.fragmentShader == "") return { SBB_RESULT_FILE_ERROR };
+			if(!status) return status; 
+			if(!status) return status;
+
+			// TODO: Maybe using std::move to avoid this copy?
+			mSources = sources;
 		}
 
 		return CompileShaders();
@@ -41,64 +43,72 @@ namespace sbb
 		glDeleteProgram(mshaderProgram);
 	}
 
-	bool OpenGLShader::SetMat4( const char* name, const void* data)
+	Status OpenGLShader::SetMat4( const char* name, const void* data)
 	{
 		GLint uniformLocation = GetUniformLocation(name);
-		if(uniformLocation == -1) return false;
+		if(uniformLocation == -1) return { SBB_RESULT_SHADER_ERROR, "Unable to find uniform" };
 
 		glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, (float *)data);
-		return true;
+		return { SBB_RESULT_OK };
 	}
 
-	bool OpenGLShader::SetVec4( const char* name, const Vec4& data)
+	Status OpenGLShader::SetVec4( const char* name, const Vec4& data)
 	{
 		GLint uniformLocation = GetUniformLocation(name);
-		if(uniformLocation == -1) return false;
+		if(uniformLocation == -1) return { SBB_RESULT_SHADER_ERROR, "Unable to find uniform" };
+
 		glUniform4fv(uniformLocation, 1, (float *)(&data));
-		return true;
+		return { SBB_RESULT_OK };
 	}
-	bool OpenGLShader::SetVec3( const char* name, const Vec3& data)
+	Status OpenGLShader::SetVec3( const char* name, const Vec3& data)
 	{
 		GLint uniformLocation = GetUniformLocation(name);
-		if(uniformLocation == -1) return false;
+		if(uniformLocation == -1) return { SBB_RESULT_SHADER_ERROR, "Unable to find uniform" };
+
 		glUniform3fv(uniformLocation, 1, (float *)(&data));
-		return true;
+		return { SBB_RESULT_OK };
 	}
 
-	bool OpenGLShader::SetVec2( const char* name, const Vec2& data)
+	Status OpenGLShader::SetVec2( const char* name, const Vec2& data)
 	{
 		GLint uniformLocation = GetUniformLocation(name);
-		if(uniformLocation == -1) return false;
+		if(uniformLocation == -1) return { SBB_RESULT_SHADER_ERROR, "Unable to find uniform" };
+
 		glUniform2fv(uniformLocation, 1, (float *)(&data));
-		return true;
+		return { SBB_RESULT_OK };
 	}
 
-	bool OpenGLShader::SetInt(const char* name, const int& data)
+	Status OpenGLShader::SetInt(const char* name, const int& data)
 	{
 		GLint uniformLocation = GetUniformLocation(name);
-		if(uniformLocation == -1) return false;
+		if(uniformLocation == -1) return { SBB_RESULT_SHADER_ERROR, "Unable to find uniform" };
+
 		glUniform1i(uniformLocation, data);
-		return true;
+		return { SBB_RESULT_OK };
 	}
 
-	bool OpenGLShader::SetFloat(const char* name, const float& data)
+	Status OpenGLShader::SetFloat(const char* name, const float& data)
 	{
 		GLint uniformLocation = GetUniformLocation(name);
-		if(uniformLocation == -1) return false;
-		glUniform1f(uniformLocation, data);
-		return true;
+		if(uniformLocation == -1) return { SBB_RESULT_SHADER_ERROR, "Unable to find uniform" };
+
+		return { SBB_RESULT_OK };
 	}
 
-	ShaderSources OpenGLShader::ExtractShaderSources() const
+	Result<ShaderSources> OpenGLShader::ExtractShaderSources() const
 	{
 		std::fstream vsFileStream; 
 		std::fstream fsFileStream; 
 
-		vsFileStream.open(mvertexShaderFilePath,   std::fstream::in);
-		fsFileStream.open(mfragmentShaderFilePath, std::fstream::in);
+		vsFileStream.open(mVertexShaderFilePath,   std::fstream::in);
+		fsFileStream.open(mFragmentShaderFilePath, std::fstream::in);
 
-		if(!vsFileStream) return { "", "" };
-		if(!fsFileStream) return { "", "" };
+		if(!vsFileStream) return { 
+			{}, 
+			{ SBB_RESULT_FILE_ERROR, "Unable to  open vertex shader file: " + mVertexShaderFilePath }};
+		if(!fsFileStream) return {
+			{}, 
+			{ SBB_RESULT_FILE_ERROR, "Unable to  open fragment shader file: " + mFragmentShaderFilePath }};
 
 		std::stringstream vsStreamSource;
 		std::stringstream fsStreamSource;
@@ -109,24 +119,26 @@ namespace sbb
 		vsFileStream.close();
 		fsFileStream.close();
 
-		return { vsStreamSource.str(), fsStreamSource.str() };
+		return {
+			{ vsStreamSource.str(), fsStreamSource.str() },
+			{ SBB_RESULT_OK }};
 	}
 
 
 	Status OpenGLShader::CompileShaders() 
 	{
-		GLuint vertexShader   = CompileShader(msources.vertexShader,   ShaderType::VERTEX_SHADER );
-		if(vertexShader == 0) return { SBB_RESULT_OPENGL_ERROR, "Unable to compile vertex shader." };
+		GLuint vertexShader = CompileShader(mSources.vertexShader,   ShaderType::VERTEX_SHADER );
+		if(vertexShader == 0) return { SBB_RESULT_SHADER_ERROR, "Unable to compile vertex shader." };
 
-		GLuint fragmentShader = CompileShader(msources.fragmentShader, ShaderType::FRAGMENT_SHADER);
+		GLuint fragmentShader = CompileShader(mSources.fragmentShader, ShaderType::FRAGMENT_SHADER);
 		if(fragmentShader == 0)
 		{
 			glDeleteShader(vertexShader);
-			return { SBB_RESULT_OPENGL_ERROR, "Unable to compile fragment shader." };
+			return { SBB_RESULT_SHADER_ERROR, "Unable to compile fragment shader." };
 		}
 
 		mshaderProgram = glCreateProgram();
-		if(mshaderProgram == 0) return { SBB_RESULT_OPENGL_ERROR, "Unable to create shader program." };
+		if(mshaderProgram == 0) return { SBB_RESULT_SHADER_ERROR, "Unable to create shader program." };
 
 		glAttachShader(mshaderProgram, vertexShader);
 		glAttachShader(mshaderProgram, fragmentShader);
@@ -137,10 +149,10 @@ namespace sbb
 		glDeleteShader(fragmentShader);
 
 		if (linkSuccessfull) return { SBB_RESULT_OK };
-		else return { SBB_RESULT_OPENGL_ERROR, "Unable to link shader program" };
+		else return { SBB_RESULT_SHADER_ERROR, "Unable to link shader program" };
 	}
 
-	bool OpenGLShader::LinkProgram(GLuint shaderProgram)
+	Status OpenGLShader::LinkProgram(GLuint shaderProgram)
 	{
 		glLinkProgram(shaderProgram);
 
@@ -150,11 +162,10 @@ namespace sbb
 		{
 			char infoLog[512];
 			glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
-			std::cout << infoLog << '\n';
-			return false;
+			return { SBB_RESULT_SHADER_ERROR, std::string("Unable to link shader program. ").append(infoLog) };
 		}
 
-		return true;
+		return { SBB_RESULT_OK };
 	};
 
 

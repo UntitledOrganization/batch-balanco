@@ -28,13 +28,13 @@ namespace sbb
 			virtual void Bind()    = 0;
 			virtual void Unbind()  = 0;
 
-			virtual bool SetMat4( const char* name, const void* data)  = 0;
-			virtual bool SetVec4( const char* name, const Vec4& data)  = 0;
-			virtual bool SetVec3( const char* name, const Vec3& data)  = 0;
-			virtual bool SetVec2( const char* name, const Vec2& data)  = 0;
+			virtual Status SetMat4( const char* name, const void* data)  = 0;
+			virtual Status SetVec4( const char* name, const Vec4& data)  = 0;
+			virtual Status SetVec3( const char* name, const Vec3& data)  = 0;
+			virtual Status SetVec2( const char* name, const Vec2& data)  = 0;
 
-			virtual bool SetInt(const char* name, const int& data)     = 0;
-			virtual bool SetFloat(const char* name, const float& data) = 0;
+			virtual Status SetInt(const char* name, const int& data)     = 0;
+			virtual Status SetFloat(const char* name, const float& data) = 0;
 
 		protected: 
 			enum class ShaderType
@@ -43,10 +43,10 @@ namespace sbb
 				FRAGMENT_SHADER
 			};
 
-			std::string mvertexShaderFilePath;
-			std::string mfragmentShaderFilePath;
+			std::string mVertexShaderFilePath;
+			std::string mFragmentShaderFilePath;
 
-			ShaderSources mshaderSource;
+			ShaderSources mShaderSource;
 	};
 
 }
