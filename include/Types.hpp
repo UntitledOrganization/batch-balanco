@@ -8,10 +8,10 @@ namespace sbb
 #pragma pack(push, 1)
 
 	struct Rect {
-		int32_t x;
-		int32_t y;
-		uint32_t w;
-		uint32_t h;
+		float x;
+		float y;
+		float w;
+		float h;
 	};
 
 	/*
