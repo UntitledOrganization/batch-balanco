@@ -24,10 +24,10 @@ namespace sbb
             glUseProgram(0);
         };
 
-        virtual Status SetMat4(const char* name, const void* data)  override;
-        virtual Status SetVec4(const char* name, const Vec4& data)  override;
-        virtual Status SetVec3(const char* name, const Vec3& data)  override;
-        virtual Status SetVec2(const char* name, const Vec2& data)  override;
+        virtual Status SetMat4(const char* name, const void* data)   override;
+        virtual Status SetVec4(const char* name, const Vec4& data)   override;
+        virtual Status SetVec3(const char* name, const Vec3& data)   override;
+        virtual Status SetVec2(const char* name, const Vec2& data)   override;
 
         virtual Status SetInt(const char* name, const int& data)     override;
         virtual Status SetFloat(const char* name, const float& data) override;
@@ -52,9 +52,9 @@ namespace sbb
         Status CompileShaders();
         Status LinkProgram(GLuint shaderProgram);
         bool HasShaderCompiledProperly(GLuint shader) const;
-        Result<ShaderSources> ExtractShaderSources() const;
+        Result<ShaderSources> ExtractShaderSources()  const;
 
-        GLenum MapShaderType(ShaderType type) const;
-        GLint GetUniformLocation(const char* name) const;
+        GLenum MapShaderType(ShaderType type)         const;
+        GLint GetUniformLocation(const char* name)    const;
     };
 }
