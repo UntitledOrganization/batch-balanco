@@ -25,7 +25,7 @@ public:
 
     Status Bind();
 
-    Status Load(const std::string& path, TextureFlags);
+    Status Load(const std::string& path, TextureFlags = TEXTURE_FILTER_NEAREST);
 
     void Cleanup();
     
