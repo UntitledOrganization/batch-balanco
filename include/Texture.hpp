@@ -5,11 +5,11 @@
 
 namespace sbb
 {   
-    
-enum TextureFlag
+
+enum TextureFlags
 {
-    TEXTURE_FILTER_LINEAR,
     TEXTURE_FILTER_NEAREST,
+    TEXTURE_FILTER_LINEAR
 };
 
 class Texture
@@ -25,7 +25,7 @@ public:
 
     Status Bind();
 
-    Status Load(const std::string& path, TextureFlag filter = TEXTURE_FILTER_LINEAR);
+    Status Load(const std::string& path, TextureFlags);
 
     void Cleanup();
     

@@ -15,16 +15,16 @@ Texture::Texture()
 {}
 
 #define LOAD_ERROR_RETURN ; return false;
-Status Texture::Load(const std::string& path, TextureFlag filter)
+Status Texture::Load(const std::string& path, TextureFlags flags)
 {
-    if(mLoaded) return {SBB_ERROR_ALREADY_LOADED, "Texture already loaded."};    
+    if(mLoaded) return {ERROR_ALREADY_LOADED, "Texture already loaded."};    
 
     // Load from file
     stbi_set_flip_vertically_on_load(true);
     int width, height, channels;
     unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
     if(data == NULL)
-        return {SBB_ERROR_READ_FILE, "Couldn't load texture from file: \""+ path +"\"."};
+        return {ERROR_READ_FILE, "Couldn't load texture from file: \""+ path +"\"."};
 
     
     
@@ -41,24 +41,24 @@ Status Texture::Load(const std::string& path, TextureFlag filter)
     if(error = glGetError(), error != GL_NO_ERROR){
         stbi_image_free(data);
         Cleanup();
-        return {SBB_ERROR_OPENGL, "Couldn't set texture wrapping options."};
+        return {ERROR_OPENGL, "Couldn't set texture wrapping options."};
     } 
         
     // Set the texture filtering options
     GLenum filterEnum;
-    if(filter == TEXTURE_FILTER_NEAREST) filterEnum = GL_NEAREST;
+    if(flags == TEXTURE_FILTER_NEAREST) filterEnum = GL_NEAREST;
     else filterEnum = GL_LINEAR;    
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterEnum);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterEnum);
     if(error = glGetError(), error != GL_NO_ERROR){
         stbi_image_free(data);
         Cleanup();
-        return {SBB_ERROR_OPENGL, "Couldn't set texture filtering options."};
+        return {ERROR_OPENGL, "Couldn't set texture filtering options."};
     } 
 
     // Load the texture into GPU, according to the number of channels
     // of the image (RGB or RGBA)
-    if(channels <= 3){
+    if(channels <= 3){        
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     } else{
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -66,7 +66,7 @@ Status Texture::Load(const std::string& path, TextureFlag filter)
     if(error = glGetError(), error != GL_NO_ERROR){
         stbi_image_free(data);
         Cleanup();
-        return {SBB_ERROR_OPENGL,  "Couldn't load texture into GPU."};
+        return {ERROR_OPENGL,  "Couldn't load texture into GPU."};
     }
 
     // Generate mipmap
@@ -74,13 +74,13 @@ Status Texture::Load(const std::string& path, TextureFlag filter)
     if(error = glGetError(), error != GL_NO_ERROR){
         stbi_image_free(data);
         Cleanup();
-        return {SBB_ERROR_OPENGL,  "Couldn't generate texture mipmap."};
+        return {ERROR_OPENGL,  "Couldn't generate texture mipmap."};
     }
 
     stbi_image_free(data);
     mLoaded = true;
 
-    return {SBB_OK, ""};
+    return {RESULT_OK, ""};
 }
 
 Status Texture::ActivateAndBind(unsigned index)
@@ -91,16 +91,16 @@ Status Texture::ActivateAndBind(unsigned index)
     // Activate texture unit "index"
     glActiveTexture(GL_TEXTURE0 + index);
     if(error = glGetError(), error != GL_NO_ERROR){
-        return {SBB_ERROR_OPENGL,  "Couldn't activate texture unit "+std::to_string(index)+". Index out of range."};
+        return {ERROR_OPENGL,  "Couldn't activate texture unit "+std::to_string(index)+". Index out of range."};
     }
 
     // Bind texture
     glBindTexture(GL_TEXTURE_2D, mId);
     if(error = glGetError(), error != GL_NO_ERROR){
-        return {SBB_ERROR_OPENGL,  "Couldn't bind texture "+ std::to_string(mId) +"."};
+        return {ERROR_OPENGL,  "Couldn't bind texture "+ std::to_string(mId) +"."};
     }
 
-    return {SBB_OK, ""};
+    return {RESULT_OK, ""};
 }
 
 Status Texture::Bind()
@@ -111,10 +111,10 @@ Status Texture::Bind()
     // Bind texture
     glBindTexture(GL_TEXTURE_2D, mId);
     if(error = glGetError(), error != GL_NO_ERROR){
-        return {SBB_ERROR_OPENGL,  "Couldn't bind texture "+ std::to_string(mId) +"."};
+        return {ERROR_OPENGL,  "Couldn't bind texture "+ std::to_string(mId) +"."};
     }
 
-    return {SBB_OK, ""};
+    return {RESULT_OK, ""};
 }
 
 void Texture::Cleanup()
