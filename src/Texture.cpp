@@ -1,94 +1,132 @@
 #include "../include/Texture.hpp"
-#include <stb_image.h>
+#include "../include/Logger.hpp"
 #include <GL/glew.h>
-#include <iostream>
-
-#define CLEAR_ERRORS(error_variable) GLenum error_variable = glGetError();
-
-#define OPENGL_ERROR(err, msg, code) \
-    err = glGetError(); \
-    if(err != GL_NO_ERROR) { \
-        std::cout << "GL_ERROR: " << msg; \
-        ##code; \
-    }
-
-#define ERROR(cond, msg, code) \
-    if(##cond) { \
-        std::cout << "ERROR: " << msg; \
-        ##code; \
-    } 
-
+#include <string>
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #endif
+#include <stb_image.h>
 
-using namespace std;
+namespace sbb {
 
-Texture::Texture()
-: mId(0), mLoaded(false)
-{}
+    Texture::Texture()
+        : mId(0), mLoaded(false)
+    {}
 
-#define LOAD_ERROR_RETURN stbi_image_free(data); return false;
-bool Texture::Load(const std::string& path)
-{
-    if(mLoaded) return false;    
+    #define LOAD_ERROR_RETURN ; return false;
+    Status Texture::Load(const std::string& path, TextureFlags flags)
+    {
+        if (mLoaded) return { ERROR_ALREADY_LOADED, "Texture already loaded." };
 
-    // Load from file
-    stbi_set_flip_vertically_on_load(true);
-    int width, height, channels;
-    unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
-    ERROR(data == NULL, "Couldn't load texture from file: \""<< path <<"\".\n", LOAD_ERROR_RETURN);
+        // Load from file
+        stbi_set_flip_vertically_on_load(true);
+        int width, height, channels;
+        unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+        if (data == NULL)
+            return { ERROR_READ_FILE, "Couldn't load texture from file: \""+ path +"\"." };
 
-    // Generate a texture on OpenGL, storing its Id   
-    CLEAR_ERRORS(err);
-    
-    glGenTextures(1, &mId);
-    ERROR(mId == 0, "Generating texture: id 0 returned.\n", LOAD_ERROR_RETURN);
 
-    glBindTexture(GL_TEXTURE_2D, mId);
-    OPENGL_ERROR(err, "Couldn't bind texture "<< mId <<".\n", LOAD_ERROR_RETURN);
 
-    // Set the texture wrapping/filtering options
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    OPENGL_ERROR(err, "Couldn't set wrapping settigns of texture "<< mId <<".\n", LOAD_ERROR_RETURN);
+        // Reset error flag
+        GLenum error = glGetError();
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    OPENGL_ERROR(err, "Couldn't set filtering settigns of texture "<< mId <<".\n", LOAD_ERROR_RETURN);    
+        // Generate and bind a texture on OpenGL, storing its Id   
+        glGenTextures(1, &mId);
+        glBindTexture(GL_TEXTURE_2D, mId);
 
-    // Load the texture into GPU, according to the number of channels
-    // of the image (RGB or RGBA)
-    if(channels <= 3){
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    } else{
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        // Set the texture wrapping options
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        if (error = glGetError(), error != GL_NO_ERROR) {
+            stbi_image_free(data);
+            Cleanup();
+            return { ERROR_OPENGL, "Couldn't set texture wrapping options." };
+        }
+
+        // Set the texture filtering options
+        GLenum filterEnum;
+        if (flags == TEXTURE_FILTER_NEAREST) filterEnum = GL_NEAREST;
+        else filterEnum = GL_LINEAR;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterEnum);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterEnum);
+        if (error = glGetError(), error != GL_NO_ERROR) {
+            stbi_image_free(data);
+            Cleanup();
+            return { ERROR_OPENGL, "Couldn't set texture filtering options." };
+        }
+
+        // Load the texture into GPU, according to the number of channels
+        // of the image (RGB or RGBA)
+        if (channels <= 3) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        }
+        else {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        }
+        if (error = glGetError(), error != GL_NO_ERROR) {
+            stbi_image_free(data);
+            Cleanup();
+            return { ERROR_OPENGL, "Couldn't load texture into GPU." };
+        }
+
+        // Generate mipmap
+        glGenerateMipmap(GL_TEXTURE_2D);
+        if (error = glGetError(), error != GL_NO_ERROR) {
+            stbi_image_free(data);
+            Cleanup();
+            return { ERROR_OPENGL, "Couldn't generate texture mipmap." };
+        }
+
+        stbi_image_free(data);
+        mLoaded = true;
+
+        return { RESULT_OK, "" };
     }
-    OPENGL_ERROR(err, "Couldn't load texture "<< mId <<" into GPU.\n", LOAD_ERROR_RETURN);
 
-    glGenerateMipmap(GL_TEXTURE_2D);
-    OPENGL_ERROR(err, "Couldn't generate mipmap of texture "<< mId <<".\n", LOAD_ERROR_RETURN);
+    Status Texture::ActivateAndBind(unsigned index)
+    {
+        // Reset error flag
+        GLenum error = glGetError();
 
-    stbi_image_free(data);
+        // Activate texture unit "index"
+        glActiveTexture(GL_TEXTURE0 + index);
+        if (error = glGetError(), error != GL_NO_ERROR) {
+            return { ERROR_OPENGL, "Couldn't activate texture unit "+std::to_string(index)+". Index out of range." };
+        }
 
-    mLoaded = true;
+        // Bind texture
+        glBindTexture(GL_TEXTURE_2D, mId);
+        if (error = glGetError(), error != GL_NO_ERROR) {
+            return { ERROR_OPENGL, "Couldn't bind texture "+ std::to_string(mId) +"." };
+        }
 
-    return true;
-}
+        return { RESULT_OK, "" };
+    }
 
-bool Texture::Bind(unsigned index)
-{
-    
-    glActiveTexture(GL_TEXTURE0 + index);
-    glBindTexture(GL_TEXTURE_2D, mId);
-    
-    return true;    
-}
+    Status Texture::Bind()
+    {
+        // Reset error flag
+        GLenum error = glGetError();
 
-Texture::~Texture()
-{
-    if(mLoaded){
+        // Bind texture
+        glBindTexture(GL_TEXTURE_2D, mId);
+        if (error = glGetError(), error != GL_NO_ERROR) {
+            return { ERROR_OPENGL, "Couldn't bind texture "+ std::to_string(mId) +"." };
+        }
+
+        return { RESULT_OK, "" };
+    }
+
+    void Texture::Cleanup()
+    {
         glDeleteTextures(1, &mId);
+        mId = 0;
+        mLoaded = false;
     }
+
+    Texture::~Texture()
+    {}
+
 }
+

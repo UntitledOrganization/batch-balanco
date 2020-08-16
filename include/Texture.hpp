@@ -1,16 +1,39 @@
 #pragma once
 
+#include "Result.hpp"
 #include <string>
 
-class Texture
+namespace sbb
 {
-private:    
-    unsigned mId;
-    bool mLoaded;
-public:
-    Texture();
-    unsigned GetId() { return mId; }
-    bool Bind(unsigned index);
-    bool Load(const std::string& path);
-    ~Texture();
-};
+
+    enum TextureFlags
+    {
+        TEXTURE_FILTER_NEAREST,
+        TEXTURE_FILTER_LINEAR
+    };
+
+    class Texture
+    {
+    private:
+        unsigned mId;
+        bool mLoaded;
+
+    public:
+        Texture();
+        unsigned GetId() {
+            return mId;
+        }
+
+        Status ActivateAndBind(unsigned index);
+
+        Status Bind();
+
+        Status Load(const std::string& path, TextureFlags = TEXTURE_FILTER_NEAREST);
+
+        void Cleanup();
+
+        ~Texture();
+    };
+
+}
+

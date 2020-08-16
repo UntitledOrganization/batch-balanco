@@ -5,18 +5,20 @@
 #include <string>
 #include <iostream>
 
-namespace sbb 
+namespace sbb
 {
+
     struct Status
     {
+
         const ResultType type;
         const std::string message;
 
         bool operator!() const {
-            return (type != SBB_RESULT_OK);
+            return (type != RESULT_OK);
         }
         operator bool() const {
-            return (type == SBB_RESULT_OK);
+            return (type == RESULT_OK);
         }
     };
 

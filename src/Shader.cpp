@@ -6,13 +6,15 @@ namespace sbb
 {
 
 	Shader::Shader(const std::string& vertexShaderFilePath, const std::string& fragmentShaderFilePath)
-		:	mVertexShaderFilePath(vertexShaderFilePath),
+		: mVertexShaderFilePath(vertexShaderFilePath),
 		mFragmentShaderFilePath(fragmentShaderFilePath)
-	{ /* */ }
+	{ /* */
+	}
 
 	Shader::Shader(const ShaderSources& source)
 		:	mVertexShaderFilePath(""),
 		mFragmentShaderFilePath("")
-	{ /* */ }
+	{ /* */
+	}
 
 }

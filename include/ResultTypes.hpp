@@ -1,10 +1,14 @@
 #pragma once
 
-namespace sbb 
+namespace sbb
 {
+
     enum ResultType {
-        SBB_RESULT_OK,
-        SBB_RESULT_FILE_ERROR,
-        SBB_RESULT_SHADER_ERROR
+        RESULT_OK,
+        ERROR_ALREADY_LOADED,
+        ERROR_OPENGL,
+        ERROR_SHADER,
+        ERROR_READ_FILE,
     };
+
 }
