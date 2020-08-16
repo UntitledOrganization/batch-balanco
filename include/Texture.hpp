@@ -1,6 +1,16 @@
 #pragma once
 
+#include "Result.hpp"
 #include <string>
+
+namespace sbb
+{   
+
+enum TextureFlags
+{
+    TEXTURE_FILTER_NEAREST,
+    TEXTURE_FILTER_LINEAR
+};
 
 class Texture
 {
@@ -10,7 +20,17 @@ private:
 public:
     Texture();
     unsigned GetId() { return mId; }
-    bool Bind(unsigned index);
-    bool Load(const std::string& path);
+    
+    Status ActivateAndBind(unsigned index);
+
+    Status Bind();
+
+    Status Load(const std::string& path, TextureFlags = TEXTURE_FILTER_NEAREST);
+
+    void Cleanup();
+    
     ~Texture();
 };
+
+}
+

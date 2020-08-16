@@ -7,15 +7,18 @@
 
 namespace sbb 
 {
-    struct Status
-    {
-        const ResultType type;
-        const std::string message;
-        bool operator!() const {
-            return (type != SBB_RESULT_OK);
-        }
-    };
 
-    template <typename T>
-    using Result = std::tuple<T, const Status>;
+struct Status
+{
+    const ResultType type;
+    const std::string message;
+    bool operator!() const 
+    {
+        return (type != RESULT_OK);
+    }
+};
+
+template <typename T>
+using Result = std::tuple<T, const Status>;
+
 }
