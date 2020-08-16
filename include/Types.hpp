@@ -2,62 +2,66 @@
 
 #include <stdint.h> 
 
-#pragma pack(push, 1)
+namespace sbb
+{
 
-struct Rect {
-	int32_t x;
-	int32_t y;
-	uint32_t w;
-	uint32_t h;
-};
+    #pragma pack(push, 1)
 
-/*
- * Vectors
- */
+    struct Rect {
+        float x;
+        float y;
+        float w;
+        float h;
+    };
 
-struct Vec2 {
-	union {
-		float x;
-		float r;
-	};
-	union {
-		float y;
-		float g;
-	};
-};
+    /*
+     * Vectors
+     */
 
-struct Vec3 {
-	union {
-		float x;
-		float r;
-	};
-	union {
-		float y;
-		float g;
-	};
-	union {
-		float z;
-		float b;
-	};
-};
+    struct Vec2 {
+        union {
+            float x;
+            float r;
+        };
+        union {
+            float y;
+            float g;
+        };
+    };
 
-struct Vec4 {
-	union {
-		float x;
-		float r;
-	};
-	union {
-		float y;
-		float g;
-	};
-	union {
-		float z;
-		float b;
-	};
-	union {
-		float w;
-		float a;
-	};
-};
+    struct Vec3 {
+        union {
+            float x;
+            float r;
+        };
+        union {
+            float y;
+            float g;
+        };
+        union {
+            float z;
+            float b;
+        };
+    };
 
-#pragma pack(pop)
+    struct Vec4 {
+        union {
+            float x;
+            float r;
+        };
+        union {
+            float y;
+            float g;
+        };
+        union {
+            float z;
+            float b;
+        };
+        union {
+            float w;
+            float a;
+        };
+    };
+
+    #pragma pack(pop)
+}

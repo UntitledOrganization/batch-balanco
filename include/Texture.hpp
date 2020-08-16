@@ -4,33 +4,36 @@
 #include <string>
 
 namespace sbb
-{   
-
-enum TextureFlags
 {
-    TEXTURE_FILTER_NEAREST,
-    TEXTURE_FILTER_LINEAR
-};
 
-class Texture
-{
-private:    
-    unsigned mId;
-    bool mLoaded;
-public:
-    Texture();
-    unsigned GetId() { return mId; }
-    
-    Status ActivateAndBind(unsigned index);
+    enum TextureFlags
+    {
+        TEXTURE_FILTER_NEAREST,
+        TEXTURE_FILTER_LINEAR
+    };
 
-    Status Bind();
+    class Texture
+    {
+    private:
+        unsigned mId;
+        bool mLoaded;
 
-    Status Load(const std::string& path, TextureFlags = TEXTURE_FILTER_NEAREST);
+    public:
+        Texture();
+        unsigned GetId() {
+            return mId;
+        }
 
-    void Cleanup();
-    
-    ~Texture();
-};
+        Status ActivateAndBind(unsigned index);
+
+        Status Bind();
+
+        Status Load(const std::string& path, TextureFlags = TEXTURE_FILTER_NEAREST);
+
+        void Cleanup();
+
+        ~Texture();
+    };
 
 }
 

@@ -5,20 +5,23 @@
 #include <string>
 #include <iostream>
 
-namespace sbb 
+namespace sbb
 {
 
-struct Status
-{
-    const ResultType type;
-    const std::string message;
-    bool operator!() const 
+    struct Status
     {
-        return (type != RESULT_OK);
-    }
-};
 
-template <typename T>
-using Result = std::tuple<T, const Status>;
+        const ResultType type;
+        const std::string message;
 
+        bool operator!() const {
+            return (type != RESULT_OK);
+        }
+        operator bool() const {
+            return (type == RESULT_OK);
+        }
+    };
+
+    template <typename T>
+    using Result = std::tuple<T, const Status>;
 }

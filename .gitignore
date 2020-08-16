@@ -8,6 +8,9 @@ build/
 *.o
 *.obj
 
+# CMake build files
+build/
+
 # Precompiled Headers
 *.gch
 *.pch

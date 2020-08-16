@@ -1,13 +1,20 @@
-#include "Shader.hpp"
+#include "../include/Shader.hpp"
 
 #include <iostream>
 
-Shader::Shader(const std::string& vertexShaderFilePath, const std::string& fragmentShaderFilePath)
-:	m_vertexShaderFilePath(vertexShaderFilePath),
-	m_fragmentShaderFilePath(fragmentShaderFilePath)
-{ /* */ }
+namespace sbb
+{
 
-Shader::Shader(const ShaderSources& source)
-:	m_vertexShaderFilePath(""),
-	m_fragmentShaderFilePath("")
-{ /* */ }
+	Shader::Shader(const std::string& vertexShaderFilePath, const std::string& fragmentShaderFilePath)
+		: mVertexShaderFilePath(vertexShaderFilePath),
+		mFragmentShaderFilePath(fragmentShaderFilePath)
+	{ /* */
+	}
+
+	Shader::Shader(const ShaderSources& source)
+		:	mVertexShaderFilePath(""),
+		mFragmentShaderFilePath("")
+	{ /* */
+	}
+
+}
