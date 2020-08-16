@@ -15,9 +15,9 @@ namespace sbb
         bool operator!() const {
             return (type != SBB_RESULT_OK);
         }
-		operator bool() const {
-			return (type == SBB_RESULT_OK);
-		}
+        operator bool() const {
+            return (type == SBB_RESULT_OK);
+        }
     };
 
     template <typename T>
