@@ -58,12 +58,14 @@ namespace sbb {
 
         // Load the texture into GPU, according to the number of channels
         // of the image (RGB or RGBA)
-        if (channels <= 3) {
+        if (channels == 3) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         }
-        else {
+        else if (channels == 4){            
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         }
+        else return { ERROR_OPENGL, "Texture has unsupported format." };
+        
         if (error = glGetError(), error != GL_NO_ERROR) {
             stbi_image_free(data);
             Cleanup();
