@@ -3,7 +3,5 @@
         "fstream": "cpp",
         "sstream": "cpp",
         "tuple": "cpp"
-    },
-
-    "terminal.integrated.shell.windows": "C:\\Users\\vinic\\Desktop\\shell.bat",
+    }  
 }
