@@ -4,6 +4,8 @@
 #include "OpenGLShader.hpp"
 #include "Texture.hpp"
 
+constexpr int DEFAULT_MAX_SPRITES = 1000;
+
 namespace sbb
 {
     class SpriteBatch
@@ -54,17 +56,17 @@ namespace sbb
         unsigned int GetMaxTextures();
 
         // Init functions
-        bool InitGlew();
         void InitControlVariables();
+        Status InitGlew();
+        Status InitShader();
         bool InitBuffers(unsigned bufferSize);
         bool InitOpenglBuffers();
-        bool InitShader();
 
     public:
         SpriteBatch();
         ~SpriteBatch();
 
-        Status Init(unsigned bufferSize, unsigned width = 0, unsigned height = 0);
+        Status Init(unsigned viewPortWidth, unsigned viewPortHeight, unsigned nMaxSprites = DEFAULT_MAX_SPRITES);
 
         Status SetWidth(unsigned value);
 

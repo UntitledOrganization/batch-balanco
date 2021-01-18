@@ -16,7 +16,7 @@ namespace sbb
     unsigned int SpriteBatch::GetMaxTextures()
     {
         GLint maxTextures;
-        glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxTextures);
+        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextures);
         return (unsigned int)maxTextures;
     }
 
@@ -27,27 +27,25 @@ namespace sbb
         mBegun = false;
     }
 
-    bool SpriteBatch::InitGlew()
+    Status SpriteBatch::InitGlew()
     {
         // Init glew
         glewExperimental = GL_TRUE;
         GLenum glewError = glewInit();
+        const char *errorString = (const char *)glewGetErrorString(glewError);
         if (glewError != GLEW_OK)
         {
-            return false;
+
+            return {ERROR_SPRITE_BATCH, std::string(errorString)};
         }
 
-        return true;
+        return {RESULT_OK, ""};
     }
 
     bool SpriteBatch::InitBuffers(unsigned bufferSize)
     {
         // Set sprite buffer size
         mBufferSize = bufferSize;
-        // Set max textures on GPU
-        // mMaxTextures = GetMaxTextures();
-        // if (mMaxTextures < 0)
-        //     return false;
 
         if ((mMaxTextures = GetMaxTextures()) < 0)
             return false;
@@ -91,7 +89,11 @@ namespace sbb
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]); // Element buffer
 
         // Allocate and copy data
+        while (GLenum err = glGetError())
+            ;
         glBufferData(GL_ARRAY_BUFFER, mBufferSize * 4 * sizeof(Vertex), NULL, GL_DYNAMIC_DRAW);
+        GLenum bufferError = glGetError();
+
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, mBufferSize * 6 * sizeof(unsigned int), &mElementBuffer[0], GL_DYNAMIC_DRAW);
 
         // Set attributes
@@ -107,10 +109,10 @@ namespace sbb
         return true;
     }
 
-    bool SpriteBatch::InitShader()
+    Status SpriteBatch::InitShader()
     {
         // Set shader source code
-        std::string vertexCode = "#version 330 core\n"
+        std::string vertexCode = "#version 400 core\n"
                                  "layout (location = 0) in vec2 	aPos;\n"
                                  "layout (location = 1) in vec2 	aTexCoord;\n"
                                  "layout (location = 2) in vec4 	aColor;\n"
@@ -122,11 +124,10 @@ namespace sbb
                                  "    vTexCoord = aTexCoord;\n"
                                  "    vTexIndex = aTexIndex;\n"
                                  "    vColor = aColor;\n"
-                                 "    gl_Position = vec4(aPos, 0.0, 1.0f);\n"
-                                 "    //gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0f);\n"
+                                 "    gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0f);\n"
                                  "}\n";
 
-        std::string fragmentCode = "#version 330 core\n"
+        std::string fragmentCode = "#version 400 core\n"
                                    "in vec2 	vTexCoord;\n"
                                    "in float	vTexIndex;\n"
                                    "in vec4	    vColor;\n"
@@ -145,18 +146,24 @@ namespace sbb
         ShaderSources source = {vertexCode, fragmentCode};
         mShader = new OpenGLShader(source);
 
-        // Compile shader (non-definitive syntax)
-        mShader->Init();
+        // Compile shader
+
+        Status shaderInitStatus = mShader->Init();
+        if (!shaderInitStatus)
+            return shaderInitStatus;
 
         // Set texture uniform
         for (unsigned i = 0; i < mMaxTextures; i++)
         {
             std::string uniformName = "textures[" + std::to_string(i) + "]";
             mShader->Bind();
-            mShader->SetInt(uniformName.c_str(), (int)i);
+
+            Status uniformStatus = mShader->SetInt(uniformName.c_str(), (int)i);
+            if (!uniformStatus)
+                return uniformStatus;
         }
 
-        return true;
+        return {RESULT_OK, ""};
     }
 
     bool SpriteBatch::Flush()
@@ -206,7 +213,7 @@ namespace sbb
 
     // Public functions
 
-    Status SpriteBatch::Init(unsigned bufferSize, unsigned width, unsigned height)
+    Status SpriteBatch::Init(unsigned width, unsigned height, unsigned nMaxSprites)
     {
         // Set screen size
         mWidth = width;
@@ -217,14 +224,15 @@ namespace sbb
         if (!InitGlew())
             return {ERROR_SPRITE_BATCH, "Couldn't init glew."};
 
-        if (!InitBuffers(bufferSize))
+        if (!InitBuffers(nMaxSprites))
             return {ERROR_SPRITE_BATCH, "Couldn't init buffers. Is there an active opengl context?"};
 
         if (!InitOpenglBuffers())
             return {ERROR_SPRITE_BATCH, "Couldn't init opengl buffers."};
 
-        if (!InitShader())
-            return {ERROR_SPRITE_BATCH, "Couldn't init shader."};
+        Status shaderStatus = InitShader();
+        if (!shaderStatus)
+            return shaderStatus;
 
         mInitiated = true;
         return {RESULT_OK, ""};

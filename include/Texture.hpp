@@ -20,7 +20,8 @@ namespace sbb
 
     public:
         Texture();
-        unsigned GetId() {
+        unsigned GetId()
+        {
             return mId;
         }
 
@@ -28,12 +29,11 @@ namespace sbb
 
         Status Bind();
 
-        Status Load(const std::string& path, TextureFlags = TEXTURE_FILTER_NEAREST);
+        Status Load(const std::string &path, TextureFlags = TEXTURE_FILTER_NEAREST);
 
         void Cleanup();
 
         ~Texture();
     };
 
-}
-
+} // namespace sbb
