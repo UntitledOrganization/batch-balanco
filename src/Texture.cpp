@@ -28,7 +28,7 @@ namespace sbb
         if (data == NULL)
             return {ERROR_READ_FILE, "Couldn't load texture from file: \"" + path + "\"."};
 
-        if (channels != 3 || channels != 4)
+        if (channels != 3 && channels != 4)
         {
             stbi_image_free(data);
             return {ERROR_TEXTURE, "Texture has unsupported format."};
