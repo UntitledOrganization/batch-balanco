@@ -54,6 +54,7 @@ namespace sbb
             filterEnum = GL_NEAREST;
         else
             filterEnum = GL_LINEAR;
+
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterEnum);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterEnum);
         if (error = glGetError(), error != GL_NO_ERROR)

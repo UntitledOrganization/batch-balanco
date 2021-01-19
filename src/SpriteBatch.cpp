@@ -3,8 +3,8 @@
 #include <GL/gl.h>
 #include <string>
 
-#define GLX(value) (((value) / (mWidth / 2)) - 1)
-#define GLY(value) (1 - ((value) / (mHeight / 2)))
+#define orthoX(value) (((value) / (mWidth / 2)) - 1)
+#define orthoY(value) (1 - ((value) / (mHeight / 2)))
 
 namespace sbb
 {
@@ -89,11 +89,7 @@ namespace sbb
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]); // Element buffer
 
         // Allocate and copy data
-        while (GLenum err = glGetError())
-            ;
         glBufferData(GL_ARRAY_BUFFER, mBufferSize * 4 * sizeof(Vertex), NULL, GL_DYNAMIC_DRAW);
-        GLenum bufferError = glGetError();
-
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, mBufferSize * 6 * sizeof(unsigned int), &mElementBuffer[0], GL_DYNAMIC_DRAW);
 
         // Set attributes
@@ -139,8 +135,6 @@ namespace sbb
                                    "    int index = int(vTexIndex);\n"
                                    "    if (index < 0) fColor = vColor;\n"
                                    "    else fColor = texture(textures[index], vTexCoord);\n"
-                                   "    //fColor = vec4(vTexCoord, 0.0, 1.0);\n"
-                                   "    //fColor = vec4((1.0/vTexIndex), 0.0, 0.0, 1.0);\n"
                                    "}\n";
 
         ShaderSources source = {vertexCode, fragmentCode};
@@ -315,10 +309,26 @@ namespace sbb
         }
 
         Vec4 black = {0.0f, 0.0f, 0.0f, 0.0f};
-        Vertex v0 = {{GLX(dst.x), GLY(dst.y)}, {src.x, 1 - src.y}, black, float(index)};
-        Vertex v1 = {{GLX(dst.x + dst.w), GLY(dst.y)}, {src.x + src.w, 1 - src.y}, black, float(index)};
-        Vertex v2 = {{GLX(dst.x + dst.w), GLY(dst.y + dst.h)}, {src.x + src.w, 1 - (src.y + src.h)}, black, float(index)};
-        Vertex v3 = {{GLX(dst.x), GLY(dst.y + dst.h)}, {src.x, 1 - (src.y + src.h)}, black, float(index)};
+        Vertex v0 = {
+            {orthoX(dst.x), orthoY(dst.y)},
+            {src.x, 1 - src.y},
+            black,
+            float(index)};
+        Vertex v1 = {
+            {orthoX(dst.x + dst.w), orthoY(dst.y)},
+            {src.x + src.w, 1 - src.y},
+            black,
+            float(index)};
+        Vertex v2 = {
+            {orthoX(dst.x + dst.w), orthoY(dst.y + dst.h)},
+            {src.x + src.w, 1 - (src.y + src.h)},
+            black,
+            float(index)};
+        Vertex v3 = {
+            {orthoX(dst.x), orthoY(dst.y + dst.h)},
+            {src.x, 1 - (src.y + src.h)},
+            black,
+            float(index)};
 
         mVertexBuffer[mSpriteCount * 4 + 0] = v0;
         mVertexBuffer[mSpriteCount * 4 + 1] = v1;
