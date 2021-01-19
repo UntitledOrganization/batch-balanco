@@ -60,7 +60,7 @@ namespace sbb
         Status InitGlew();
         Status InitShader();
         bool InitBuffers(unsigned bufferSize);
-        bool InitOpenglBuffers();
+        Status InitOpenglBuffers();
 
     public:
         SpriteBatch();

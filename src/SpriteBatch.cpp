@@ -1,4 +1,5 @@
 #include "../include/SpriteBatch.hpp"
+#include "../include/GLCall.hpp"
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <string>
@@ -76,7 +77,7 @@ namespace sbb
         return true;
     }
 
-    bool SpriteBatch::InitOpenglBuffers()
+    Status SpriteBatch::InitOpenglBuffers()
     {
         // Generate vertex array
         glGenVertexArrays(1, &mVao);
@@ -89,7 +90,13 @@ namespace sbb
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]); // Element buffer
 
         // Allocate and copy data
-        glBufferData(GL_ARRAY_BUFFER, mBufferSize * 4 * sizeof(Vertex), NULL, GL_DYNAMIC_DRAW);
+        GLCall(glBufferData(GL_ARRAY_BUFFER, mBufferSize * 4 * sizeof(Vertex), NULL, GL_DYNAMIC_DRAW));
+        Status glStatus = GLCheckError();
+        if (!glStatus)
+        {
+            return glStatus;
+        }
+
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, mBufferSize * 6 * sizeof(unsigned int), &mElementBuffer[0], GL_DYNAMIC_DRAW);
 
         // Set attributes
@@ -102,7 +109,7 @@ namespace sbb
         glEnableVertexAttribArray(2);
         glEnableVertexAttribArray(3);
 
-        return true;
+        return {RESULT_OK, ""};
     }
 
     Status SpriteBatch::InitShader()
@@ -221,8 +228,9 @@ namespace sbb
         if (!InitBuffers(nMaxSprites))
             return {ERROR_SPRITE_BATCH, "Couldn't init buffers. Is there an active opengl context?"};
 
-        if (!InitOpenglBuffers())
-            return {ERROR_SPRITE_BATCH, "Couldn't init opengl buffers."};
+        Status glBufferStatus = InitOpenglBuffers();
+        if (!glBufferStatus)
+            return {glBufferStatus.type, "Couldn't init opengl buffers. " + glBufferStatus.message};
 
         Status shaderStatus = InitShader();
         if (!shaderStatus)
@@ -356,10 +364,10 @@ namespace sbb
 
         Vec2 origin = {0.0f, 0.0f};
 
-        Vertex v0 = {{GLX(rect.x), GLY(rect.y)}, origin, color, -1.0f};
-        Vertex v1 = {{GLX(rect.x + rect.w), GLY(rect.y)}, origin, color, -1.0f};
-        Vertex v2 = {{GLX(rect.x + rect.w), GLY(rect.y + rect.h)}, origin, color, -1.0f};
-        Vertex v3 = {{GLX(rect.x), GLY(rect.y + rect.h)}, origin, color, -1.0f};
+        Vertex v0 = {{orthoX(rect.x), orthoY(rect.y)}, origin, color, -1.0f};
+        Vertex v1 = {{orthoX(rect.x + rect.w), orthoY(rect.y)}, origin, color, -1.0f};
+        Vertex v2 = {{orthoX(rect.x + rect.w), orthoY(rect.y + rect.h)}, origin, color, -1.0f};
+        Vertex v3 = {{orthoX(rect.x), orthoY(rect.y + rect.h)}, origin, color, -1.0f};
 
         mVertexBuffer[mSpriteCount * 4 + 0] = v0;
         mVertexBuffer[mSpriteCount * 4 + 1] = v1;
