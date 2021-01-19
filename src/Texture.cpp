@@ -77,67 +77,16 @@ namespace sbb
         if (mLoaded)
             return {ERROR_ALREADY_LOADED, "Texture already loaded."};
 
-        // Load from file
+        // Get data from file
         stbi_set_flip_vertically_on_load(true);
         int width, height, nChannels;
         unsigned char *data = stbi_load(path.c_str(), &width, &height, &nChannels, 0);
         if (data == NULL)
             return {ERROR_READ_FILE, "Couldn't get texture data from file: \"" + path + "\"."};
 
-        // if (nChannels != 3 && nChannels != 4)
-        // {
-        //     stbi_image_free(data);
-        //     return {ERROR_TEXTURE, "Texture has unsupported format."};
-        // }
-
-        // Status glStatus;
-
-        // // Generate and bind a texture on OpenGL, storing its Id
-        // glGenTextures(1, &mId);
-        // glBindTexture(GL_TEXTURE_2D, mId);
-
-        // // Set the texture wrapping options
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        // // Set the texture filtering options
-        // GLenum filterEnum;
-        // if (flags == TEXTURE_FILTER_NEAREST)
-        //     filterEnum = GL_NEAREST;
-        // else
-        //     filterEnum = GL_LINEAR;
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterEnum);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterEnum);
-
-        // // Load the texture into GPU, according to the number of channels
-        // // of the image (RGB or RGBA)
-        // if (channels == 3)
-        // {
-        //     GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data));
-        //     if (glStatus = GLCheckError(), !glStatus)
-        //     {
-        //         stbi_image_free(data);
-        //         Cleanup();
-        //         return {ERROR_OPENGL, "Couldn't load texture in GPU. " + glStatus.message};
-        //     }
-        // }
-        // else if (channels == 4)
-        // {
-        //     GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
-        //     if (glStatus = GLCheckError(), !glStatus)
-        //     {
-        //         stbi_image_free(data);
-        //         Cleanup();
-        //         return {ERROR_OPENGL, "Couldn't load texture in GPU. " + glStatus.message};
-        //     }
-        // }
-
-        // // Generate mipmap
-        // glGenerateMipmap(GL_TEXTURE_2D);
-
+        // Load from data
         Status loadStatus = Load(data, width, height, nChannels, flags);
         stbi_image_free(data);
-        // mLoaded = true;
 
         return loadStatus;
     }
