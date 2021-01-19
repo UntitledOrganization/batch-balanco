@@ -11,8 +11,8 @@ namespace sbb
     struct Status
     {
 
-        const ResultType type;
-        const std::string message;
+        ResultType type;
+        std::string message;
 
         bool operator!() const
         {
@@ -21,10 +21,6 @@ namespace sbb
         operator bool() const
         {
             return (type == RESULT_OK);
-        }
-        Status &operator=(const Status &rhs)
-        {
-            return {rhs.type, rhs.message};
         }
     };
 
