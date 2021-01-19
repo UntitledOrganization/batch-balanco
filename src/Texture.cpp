@@ -67,6 +67,8 @@ namespace sbb
         // Generate mipmap
         glGenerateMipmap(GL_TEXTURE_2D);
 
+        mWidth = width;
+        mHeight = height;
         mLoaded = true;
 
         return {RESULT_OK, ""};
@@ -125,6 +127,8 @@ namespace sbb
     {
         glDeleteTextures(1, &mId);
         mId = 0;
+        mWidth = 0;
+        mHeight = 0;
         mLoaded = false;
     }
 
