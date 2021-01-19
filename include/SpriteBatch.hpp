@@ -50,7 +50,7 @@ namespace sbb
         bool IsFullTextureBuffer();
 
         // Draw everything on sprite buffer
-        bool Flush();
+        Status Flush();
 
         // Get max textures based on GPU
         unsigned int GetMaxTextures();

@@ -79,6 +79,8 @@ namespace sbb
 
     Status SpriteBatch::InitOpenglBuffers()
     {
+        Status glStatus;
+
         // Generate vertex array
         glGenVertexArrays(1, &mVao);
         glBindVertexArray(mVao);
@@ -91,13 +93,12 @@ namespace sbb
 
         // Allocate and copy data
         GLCall(glBufferData(GL_ARRAY_BUFFER, mBufferSize * 4 * sizeof(Vertex), NULL, GL_DYNAMIC_DRAW));
-        Status glStatus = GLCheckError();
-        if (!glStatus)
-        {
-            return glStatus;
-        }
+        if (glStatus = GLCheckError(), !glStatus)
+            return {ERROR_OPENGL, "Couldn't create vertex buffer. " + glStatus.message};
 
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mBufferSize * 6 * sizeof(unsigned int), &mElementBuffer[0], GL_DYNAMIC_DRAW);
+        GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mBufferSize * 6 * sizeof(unsigned int), &mElementBuffer[0], GL_DYNAMIC_DRAW));
+        if (glStatus = GLCheckError(), !glStatus)
+            return {ERROR_OPENGL, "Couldn't create element buffer. " + glStatus.message};
 
         // Set attributes
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, position));
@@ -167,18 +168,22 @@ namespace sbb
         return {RESULT_OK, ""};
     }
 
-    bool SpriteBatch::Flush()
+    Status SpriteBatch::Flush()
     {
+        Status glStatus;
+
         mShader->Bind();
 
         glBindVertexArray(mVao);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, mSpriteCount * 4 * sizeof(Vertex), &mVertexBuffer[0]);
+        GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, mSpriteCount * 4 * sizeof(Vertex), &mVertexBuffer[0]));
+        if (glStatus = GLCheckError(), !glStatus)
+            return {ERROR_OPENGL, "Couldn't flush draw buffer. " + glStatus.message};
         glDrawElements(GL_TRIANGLES, mSpriteCount * 6, GL_UNSIGNED_INT, 0);
 
         ResetTextureBuffer();
         mSpriteCount = 0;
 
-        return true;
+        return {RESULT_OK, ""};
     }
 
     bool SpriteBatch::IsInTextureBuffer(unsigned textureId)
@@ -290,6 +295,8 @@ namespace sbb
 
     Status SpriteBatch::DrawSprite(Texture &texture, const Rect &src, const Rect &dst)
     {
+        Status flushStatus;
+
         if (!mInitiated)
             return {ERROR_SPRITE_BATCH, "SpriteBatch not initiated."};
 
@@ -298,8 +305,8 @@ namespace sbb
 
         if (mSpriteCount == mBufferSize)
         {
-            if (!Flush())
-                return {ERROR_SPRITE_BATCH, "Couldn't draw sprites."};
+            if (flushStatus = Flush(), !flushStatus)
+                return flushStatus;
         }
 
         unsigned id = texture.GetId();
@@ -308,8 +315,8 @@ namespace sbb
         {
             if (IsFullTextureBuffer())
             {
-                if (!Flush())
-                    return {ERROR_SPRITE_BATCH, "Couldn't draw sprites."};
+                if (flushStatus = Flush(), !flushStatus)
+                    return flushStatus;
             }
 
             index = PushInTextureBuffer(id);
@@ -317,26 +324,22 @@ namespace sbb
         }
 
         Vec4 black = {0.0f, 0.0f, 0.0f, 0.0f};
-        Vertex v0 = {
-            {orthoX(dst.x), orthoY(dst.y)},
-            {src.x, 1 - src.y},
-            black,
-            float(index)};
-        Vertex v1 = {
-            {orthoX(dst.x + dst.w), orthoY(dst.y)},
-            {src.x + src.w, 1 - src.y},
-            black,
-            float(index)};
-        Vertex v2 = {
-            {orthoX(dst.x + dst.w), orthoY(dst.y + dst.h)},
-            {src.x + src.w, 1 - (src.y + src.h)},
-            black,
-            float(index)};
-        Vertex v3 = {
-            {orthoX(dst.x), orthoY(dst.y + dst.h)},
-            {src.x, 1 - (src.y + src.h)},
-            black,
-            float(index)};
+        Vertex v0 = {{orthoX(dst.x), orthoY(dst.y)},
+                     {src.x, 1 - src.y},
+                     black,
+                     float(index)};
+        Vertex v1 = {{orthoX(dst.x + dst.w), orthoY(dst.y)},
+                     {src.x + src.w, 1 - src.y},
+                     black,
+                     float(index)};
+        Vertex v2 = {{orthoX(dst.x + dst.w), orthoY(dst.y + dst.h)},
+                     {src.x + src.w, 1 - (src.y + src.h)},
+                     black,
+                     float(index)};
+        Vertex v3 = {{orthoX(dst.x), orthoY(dst.y + dst.h)},
+                     {src.x, 1 - (src.y + src.h)},
+                     black,
+                     float(index)};
 
         mVertexBuffer[mSpriteCount * 4 + 0] = v0;
         mVertexBuffer[mSpriteCount * 4 + 1] = v1;
@@ -356,18 +359,31 @@ namespace sbb
         if (!mBegun)
             return {ERROR_SPRITE_BATCH, "Drawing not begun. You need to call Begin()"};
 
+        Status flushStatus;
         if (mSpriteCount == mBufferSize)
         {
-            if (!Flush())
-                return {ERROR_SPRITE_BATCH, "Couldn't draw sprites."};
+            if (flushStatus = Flush(), !flushStatus)
+                return flushStatus;
         }
 
         Vec2 origin = {0.0f, 0.0f};
 
-        Vertex v0 = {{orthoX(rect.x), orthoY(rect.y)}, origin, color, -1.0f};
-        Vertex v1 = {{orthoX(rect.x + rect.w), orthoY(rect.y)}, origin, color, -1.0f};
-        Vertex v2 = {{orthoX(rect.x + rect.w), orthoY(rect.y + rect.h)}, origin, color, -1.0f};
-        Vertex v3 = {{orthoX(rect.x), orthoY(rect.y + rect.h)}, origin, color, -1.0f};
+        Vertex v0 = {{orthoX(rect.x), orthoY(rect.y)},
+                     origin,
+                     color,
+                     -1.0f};
+        Vertex v1 = {{orthoX(rect.x + rect.w), orthoY(rect.y)},
+                     origin,
+                     color,
+                     -1.0f};
+        Vertex v2 = {{orthoX(rect.x + rect.w), orthoY(rect.y + rect.h)},
+                     origin,
+                     color,
+                     -1.0f};
+        Vertex v3 = {{orthoX(rect.x), orthoY(rect.y + rect.h)},
+                     origin,
+                     color,
+                     -1.0f};
 
         mVertexBuffer[mSpriteCount * 4 + 0] = v0;
         mVertexBuffer[mSpriteCount * 4 + 1] = v1;
@@ -393,10 +409,11 @@ namespace sbb
         if (!mBegun)
             return {ERROR_SPRITE_BATCH, "Drawing not begun. You need to call Begin()"};
 
-        Flush();
+        Status flushStatus = Flush();
+
         mBegun = false;
 
-        return {RESULT_OK, ""};
+        return flushStatus;
     }
 
     SpriteBatch::~SpriteBatch()
