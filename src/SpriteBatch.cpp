@@ -218,8 +218,8 @@ namespace sbb
         if (!InitGlew())
             return {ERROR_SPRITE_BATCH, "Couldn't init glew."};
 
-        if (!InitBuffers(nMaxSprites))
-            return {ERROR_SPRITE_BATCH, "Couldn't init buffers. Is there an active opengl context?"};
+        // if (!InitBuffers(nMaxSprites))
+        return {ERROR_SPRITE_BATCH, "Couldn't init buffers. Is there an active opengl context?"};
 
         if (!InitOpenglBuffers())
             return {ERROR_SPRITE_BATCH, "Couldn't init opengl buffers."};
@@ -356,10 +356,10 @@ namespace sbb
 
         Vec2 origin = {0.0f, 0.0f};
 
-        Vertex v0 = {{GLX(rect.x), GLY(rect.y)}, origin, color, -1.0f};
-        Vertex v1 = {{GLX(rect.x + rect.w), GLY(rect.y)}, origin, color, -1.0f};
-        Vertex v2 = {{GLX(rect.x + rect.w), GLY(rect.y + rect.h)}, origin, color, -1.0f};
-        Vertex v3 = {{GLX(rect.x), GLY(rect.y + rect.h)}, origin, color, -1.0f};
+        Vertex v0 = {{orthoX(rect.x), orthoY(rect.y)}, origin, color, -1.0f};
+        Vertex v1 = {{orthoX(rect.x + rect.w), orthoY(rect.y)}, origin, color, -1.0f};
+        Vertex v2 = {{orthoX(rect.x + rect.w), orthoY(rect.y + rect.h)}, origin, color, -1.0f};
+        Vertex v3 = {{orthoX(rect.x), orthoY(rect.y + rect.h)}, origin, color, -1.0f};
 
         mVertexBuffer[mSpriteCount * 4 + 0] = v0;
         mVertexBuffer[mSpriteCount * 4 + 1] = v1;
