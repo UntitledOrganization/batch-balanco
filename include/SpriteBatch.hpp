@@ -41,12 +41,14 @@ namespace sbb
         // GL dependent variables
         unsigned mVao;
         OpenGLShader *mShader;
+        Texture mWhiteTexture;
 
-        // Private functiosn
+        // Private functions
 
         void ResetTextureBuffer();
         unsigned PushInTextureBuffer(unsigned textureId);
         bool IsInTextureBuffer(unsigned textureId);
+        int FindInTextureBuffer(unsigned textureId);
         bool IsFullTextureBuffer();
 
         // Draw everything on sprite buffer

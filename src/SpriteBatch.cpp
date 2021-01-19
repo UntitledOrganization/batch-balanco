@@ -7,6 +7,9 @@
 #define orthoX(value) (((value) / (mWidth / 2)) - 1)
 #define orthoY(value) (1 - ((value) / (mHeight / 2)))
 
+#define texOrthoX(value) ((value) / texture.GetWidth())
+#define texOrthoY(value) (1 - ((value) / texture.GetHeight()))
+
 namespace sbb
 {
 
@@ -141,8 +144,7 @@ namespace sbb
                                    "];\n"
                                    "void main(){\n"
                                    "    int index = int(vTexIndex);\n"
-                                   "    if (index < 0) fColor = vColor;\n"
-                                   "    else fColor = texture(textures[index], vTexCoord);\n"
+                                   "    fColor = vColor * texture(textures[index], vTexCoord);\n"
                                    "}\n";
 
         ShaderSources source = {vertexCode, fragmentCode};
@@ -196,6 +198,16 @@ namespace sbb
         return false;
     }
 
+    int SpriteBatch::FindInTextureBuffer(unsigned textureId)
+    {
+        for (unsigned i = 0; i < mTextureCount; i++)
+        {
+            if (textureId == mTextureBuffer[i])
+                return i;
+        }
+        return -1;
+    }
+
     bool SpriteBatch::IsFullTextureBuffer()
     {
         return (mTextureCount == mMaxTextures);
@@ -204,11 +216,14 @@ namespace sbb
     void SpriteBatch::ResetTextureBuffer()
     {
         // Init texture buffer
-        for (unsigned i = 0; i < mTextureCount; i++)
+        for (unsigned i = 1; i < mTextureCount; i++)
         {
             mTextureBuffer[i] = 0;
         }
-        mTextureCount = 0;
+        mTextureCount = 1;
+
+        // Reset white texture
+        mWhiteTexture.ActivateAndBind(0);
     }
 
     unsigned SpriteBatch::PushInTextureBuffer(unsigned textureId)
@@ -240,6 +255,12 @@ namespace sbb
         Status shaderStatus = InitShader();
         if (!shaderStatus)
             return shaderStatus;
+
+        // Set white texture
+        unsigned char data[3] = {255, 255, 255};
+        mWhiteTexture.Load(data, 1, 1, 3);
+        PushInTextureBuffer(mWhiteTexture.GetId());
+        mWhiteTexture.ActivateAndBind(0);
 
         mInitiated = true;
         return {RESULT_OK, ""};
@@ -309,12 +330,15 @@ namespace sbb
                 return flushStatus;
         }
 
+        // std::cout << "Go 1\n";
+
         unsigned id = texture.GetId();
-        unsigned index;
-        if (!IsInTextureBuffer(id))
+        int index = FindInTextureBuffer(id);
+        if (index < 0)
         {
             if (IsFullTextureBuffer())
             {
+                // std::cout << "Textures is full \n";
                 if (flushStatus = Flush(), !flushStatus)
                     return flushStatus;
             }
@@ -323,23 +347,33 @@ namespace sbb
             texture.ActivateAndBind(index);
         }
 
-        Vec4 black = {0.0f, 0.0f, 0.0f, 0.0f};
+        // std::cout << "Index = " << index << "\n";
+        // std::cout << "Id = " << id << "\n\n";
+
+        Vec4 white = {1.0f, 1.0f, 1.0f, 1.0f};
         Vertex v0 = {{orthoX(dst.x), orthoY(dst.y)},
-                     {src.x, 1 - src.y},
-                     black,
+                     {texOrthoX(src.x), texOrthoY(src.y)},
+                     white,
                      float(index)};
         Vertex v1 = {{orthoX(dst.x + dst.w), orthoY(dst.y)},
-                     {src.x + src.w, 1 - src.y},
-                     black,
+                     {texOrthoX(src.x + src.w), texOrthoY(src.y)},
+                     white,
                      float(index)};
         Vertex v2 = {{orthoX(dst.x + dst.w), orthoY(dst.y + dst.h)},
-                     {src.x + src.w, 1 - (src.y + src.h)},
-                     black,
+                     {texOrthoX(src.x + src.w), texOrthoY(src.y + src.h)},
+                     white,
                      float(index)};
         Vertex v3 = {{orthoX(dst.x), orthoY(dst.y + dst.h)},
-                     {src.x, 1 - (src.y + src.h)},
-                     black,
+                     {texOrthoX(src.x), texOrthoY(src.y + src.h)},
+                     white,
                      float(index)};
+
+        // std::cout << "V0 = (" << v0.textureCoord.x << ", " << v0.textureCoord.y << ")\n";
+        // std::cout << "V1 = (" << v1.textureCoord.x << ", " << v1.textureCoord.y << ")\n";
+        // std::cout << "V2 = (" << v2.textureCoord.x << ", " << v2.textureCoord.y << ")\n";
+        // std::cout << "V3 = (" << v3.textureCoord.x << ", " << v3.textureCoord.y << ")\n";
+
+        // std::cout << "Go 3\n";
 
         mVertexBuffer[mSpriteCount * 4 + 0] = v0;
         mVertexBuffer[mSpriteCount * 4 + 1] = v1;
@@ -347,6 +381,8 @@ namespace sbb
         mVertexBuffer[mSpriteCount * 4 + 3] = v3;
 
         mSpriteCount++;
+
+        // std::cout << "Go 4\n";
 
         return {RESULT_OK, ""};
     }
@@ -371,19 +407,19 @@ namespace sbb
         Vertex v0 = {{orthoX(rect.x), orthoY(rect.y)},
                      origin,
                      color,
-                     -1.0f};
+                     0.0f};
         Vertex v1 = {{orthoX(rect.x + rect.w), orthoY(rect.y)},
                      origin,
                      color,
-                     -1.0f};
+                     0.0f};
         Vertex v2 = {{orthoX(rect.x + rect.w), orthoY(rect.y + rect.h)},
                      origin,
                      color,
-                     -1.0f};
+                     0.0f};
         Vertex v3 = {{orthoX(rect.x), orthoY(rect.y + rect.h)},
                      origin,
                      color,
-                     -1.0f};
+                     0.0f};
 
         mVertexBuffer[mSpriteCount * 4 + 0] = v0;
         mVertexBuffer[mSpriteCount * 4 + 1] = v1;
